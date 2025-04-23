@@ -1,1 +1,26 @@
-
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Doto:wght@100..900&family=Silkscreen:wght@400;700&family=VT323&display=swap');
+.dotgothic16 {
+  font-family: DotGothic16;
+}
+.doto { 
+font-family: Doto;
+}
+.vt323 {
+  font-family: VT323;
+}
+.box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); 
+  
+}
+#bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+}
