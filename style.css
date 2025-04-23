@@ -26,6 +26,7 @@ font-family: Doto;
   background-color: rgba(225, 0, 199, 0.55);
 display:flex;
   flex-direction: column;
+  z-index: 0;
 }
 #bg-video {
   position: absolute;
