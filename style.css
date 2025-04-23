@@ -18,8 +18,11 @@ font-family: Doto;
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); 
-  
+  transform: translate(-50%, -50%);
+    border: 3px rgba(225, 0, 199, 0.55); 
+  border-radius: 10%; 
+  padding: 1rem 1.5rem
+
 }
 #bg-video {
   position: absolute;
@@ -29,4 +32,12 @@ font-family: Doto;
   height: 100vh;
   object-fit: cover;
   z-index: 1;
+}
+.box {
+  align-items: center; 
+  display: flex;
+  border: 3px solid black; 
+  border-radius: 10px; 
+  padding: 1rem 1.5rem
+  justify-content: center;
 }
