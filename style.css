@@ -1,3 +1,9 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
 @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Doto:wght@100..900&family=Silkscreen:wght@400;700&family=VT323&display=swap');
 .dotgothic16 {
   font-family: DotGothic16;
