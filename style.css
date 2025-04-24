@@ -1,40 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
 body, html {
+    
   margin: 0;
   padding: 0;
   height: 100%;
+    width: 100%;
   overflow: hidden;
+  font-family: Silkscreen;
 }
-@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Doto:wght@100..900&family=Silkscreen:wght@400;700&family=VT323&display=swap');
-.dotgothic16 {
-  font-family: DotGothic16;
-}
-.doto { 
-font-family: Doto;
-}
-.vt323 {
-  font-family: VT323;
-}
-.box {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-    border: 3px solid;
-  border-color: red;
-  border-radius: 10%; 
-  padding: 1rem 1.5rem;
-  background-color: rgba(225, 0, 199, 0.55);
-display:flex;
-  flex-direction: column;
-  z-index: 0;
-}
-#bg-video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: -1;
-}
+.text {
+    font-family: Silkscreen;
+    }
+#background {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    }
 
