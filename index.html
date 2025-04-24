@@ -1,14 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <video autoplay muted loop id="bg-video">
-        <source src="background.mp4" type="video/mp4">
-    </video>
-    <h1 class="box"> hi </h1>
-  </body>
+    <head>
+         <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="assets/icon.ico" type="image/x-icon">
+    <title>
+      river's attic
+    </title>
+    </head>
+    <body>
+        <div class="background"><div id="background"></div></div>
+        <script src="p5.min.js"></script>
+<script src="vanta.trunk.min.js"></script>
+<script>
+VANTA.TRUNK({
+  el: "#background",
+  mouseControls: true,
+  touchControls: true,
+  gyroControls: false,
+  minHeight: 770.00,
+  minWidth: 200.00,
+  scale: 1.00,
+  scaleMobile: 1.00,
+  color: 0xff004f,
+  backgroundColor: 0x0,
+  spacing: 1.00,
+  chaos: 3.00
+})
+</script>
+    </body>
 </html>
