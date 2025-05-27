@@ -3,35 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Percentage Generator</title>
+    <title>Typing Speed Test</title>
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Silkscreen', cursive;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #c1f0c1; /* Pastel green background */
+            background-color: #c1f0c1;
+            padding: 20px;
         }
         
         .container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 50px;
+            width: 80%;
+            max-width: 800px;
         }
         
-        .content {
+        h1 {
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
             text-align: center;
         }
         
-        .percentage {
-            font-size: 72px;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #2c3e50;
-            min-height: 100px;
+        .target-text {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            line-height: 1.6;
+            width: 100%;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
+        }
+        
+        .user-input {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 2px solid #3498db;
+            margin-bottom: 20px;
+            font-family: 'Silkscreen', cursive;
+            resize: none;
+        }
+        
+        .results {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .wpm-display, .accuracy-display {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            width: 48%;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
+        }
+        
+        .wpm-value, .accuracy-value {
+            font-size: 36px;
+            margin: 10px 0;
         }
         
         button {
@@ -51,38 +95,32 @@
         }
         
         .progress-container {
-            width: 50px;
-            height: 300px;
+            width: 100%;
+            height: 30px;
             background-color: #ecf0f1;
             border-radius: 5px;
             position: relative;
             overflow: hidden;
-            box-shadow: 3px 3px 5px rgba(0,0,0,0.2);
+            margin-top: 20px;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
         }
         
         .progress-bar {
             width: 100%;
+            height: 100%;
             background-color: #2ecc71;
             position: absolute;
-            bottom: 0;
-            transition: height 0.5s ease;
+            left: 0;
+            top: 0;
+            transform-origin: left center;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
             border-radius: 5px;
-        }
-        
-        .message {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #7f8c8d;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
         
@@ -93,52 +131,126 @@
 </head>
 <body>
     <div class="container">
-        <div class="content">
-            <h1>RANDOM % GENERATOR</h1>
-            <div class="percentage" id="percentage">?</div>
-            <button id="generateBtn">GENERATE</button>
-            <div class="message" id="message">CLICK TO GENERATE A RANDOM %</div>
+        <h1>TYPING SPEED TEST</h1>
+        
+        <div class="target-text" id="targetText">
+            The quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet. Try to type it as quickly and accurately as possible.
         </div>
         
+        <textarea class="user-input" id="userInput" placeholder="Start typing here..."></textarea>
+        
+        <div class="results">
+            <div class="wpm-display">
+                <div>WORDS PER MINUTE</div>
+                <div class="wpm-value" id="wpmValue">0</div>
+            </div>
+            <div class="accuracy-display">
+                <div>ACCURACY</div>
+                <div class="accuracy-value" id="accuracyValue">0%</div>
+            </div>
+        </div>
+        
+        <button id="resetBtn">RESET TEST</button>
+        
         <div class="progress-container">
-            <div class="progress-bar" id="progressBar" style="height: 0%;"></div>
+            <div class="progress-bar" id="progressBar"></div>
         </div>
     </div>
 
     <script>
-        const generateBtn = document.getElementById('generateBtn');
-        const percentageDisplay = document.getElementById('percentage');
+        const targetText = document.getElementById('targetText').textContent;
+        const userInput = document.getElementById('userInput');
+        const wpmValue = document.getElementById('wpmValue');
+        const accuracyValue = document.getElementById('accuracyValue');
+        const resetBtn = document.getElementById('resetBtn');
         const progressBar = document.getElementById('progressBar');
-        const messageDisplay = document.getElementById('message');
         
-        generateBtn.addEventListener('click', function() {
-            // Generate random percentage between 0 and 100
-            const randomPercentage = Math.floor(Math.random() * 101);
+        let startTime;
+        let timer;
+        let isTyping = false;
+        
+        // Initialize the test
+        function initTest() {
+            userInput.value = '';
+            wpmValue.textContent = '0';
+            accuracyValue.textContent = '0%';
+            progressBar.style.transform = 'scaleX(0)';
+            userInput.focus();
+        }
+        
+        // Calculate WPM
+        function calculateWPM(text, timeInMinutes) {
+            const wordCount = text.trim().split(/\s+/).length;
+            return Math.round(wordCount / timeInMinutes);
+        }
+        
+        // Calculate accuracy
+        function calculateAccuracy(input, target) {
+            let correctChars = 0;
+            const minLength = Math.min(input.length, target.length);
             
-            // Display the percentage
-            percentageDisplay.textContent = randomPercentage + '%';
-            
-            // Update the progress bar height
-            progressBar.style.height = randomPercentage + '%';
-            
-            // Change progress bar color based on percentage
-            if (randomPercentage < 30) {
-                progressBar.style.backgroundColor = '#e74c3c'; // Red for low percentages
-                messageDisplay.textContent = "LOW SCORE! TRY AGAIN!";
-            } else if (randomPercentage < 70) {
-                progressBar.style.backgroundColor = '#f39c12'; // Orange for medium percentages
-                messageDisplay.textContent = "GOOD! BUT CAN YOU DO BETTER?";
-            } else {
-                progressBar.style.backgroundColor = '#2ecc71'; // Green for high percentages
-                messageDisplay.textContent = "EXCELLENT! GREAT SCORE!";
+            for (let i = 0; i < minLength; i++) {
+                if (input[i] === target[i]) {
+                    correctChars++;
+                }
             }
             
-            // Add animation class temporarily
-            percentageDisplay.classList.add('animate');
-            setTimeout(() => {
-                percentageDisplay.classList.remove('animate');
-            }, 500);
+            const accuracy = (correctChars / target.length) * 100;
+            return Math.round(accuracy);
+        }
+        
+        // Update progress
+        function updateProgress(input) {
+            const progress = input.length / targetText.length;
+            progressBar.style.transform = `scaleX(${progress})`;
+            
+            // Change color based on progress
+            if (progress < 0.3) {
+                progressBar.style.backgroundColor = '#e74c3c';
+            } else if (progress < 0.7) {
+                progressBar.style.backgroundColor = '#f39c12';
+            } else {
+                progressBar.style.backgroundColor = '#2ecc71';
+            }
+        }
+        
+        // Start the test when user begins typing
+        userInput.addEventListener('input', function() {
+            if (!isTyping) {
+                isTyping = true;
+                startTime = new Date();
+            }
+            
+            const currentText = userInput.value;
+            const currentTime = new Date();
+            const timeElapsed = (currentTime - startTime) / 60000; // in minutes
+            
+            // Calculate WPM
+            const wpm = calculateWPM(currentText, timeElapsed);
+            wpmValue.textContent = wpm;
+            
+            // Calculate accuracy
+            const accuracy = calculateAccuracy(currentText, targetText);
+            accuracyValue.textContent = accuracy + '%';
+            
+            // Update progress bar
+            updateProgress(currentText);
+            
+            // Check if test is complete
+            if (currentText.length === targetText.length) {
+                userInput.blur();
+                isTyping = false;
+            }
         });
+        
+        // Reset button functionality
+        resetBtn.addEventListener('click', function() {
+            initTest();
+            isTyping = false;
+        });
+        
+        // Initialize the test on page load
+        initTest();
     </script>
 </body>
 </html>
