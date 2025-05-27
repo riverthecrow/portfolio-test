@@ -72,7 +72,18 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40%; 
-  height: 60%; 
+  width: fit-content; 
+  height: fit-content; 
 }
 
+.box {
+  background: linear-gradient(225deg, yellow, white, purple, black);
+  border: 0.5vh solid;
+  border-color: rgba(94, 94, 94, 0.8);
+  padding: 1%;
+  height: 87%;
+  opacity: 0.8;
+  width: 22.5%;
+  border-radius: 3%;
+  font-size: 1.5vh;
+ }
