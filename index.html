@@ -7,17 +7,15 @@
         r
         </title>
     <script>
-        // little sigma thingy for idk cycling titles 
+        // sigma lil title cycler that i definitely didnt skid uwu
 const titlePresets = [
-  "r",
   "ri",
   "riv",
   "rive",
-    "river",
+  "river",
     "river'",
     "river's",
-    "river's ",
-    "river's s", 
+    "river's s",
     "river's si",
     "river's sit", 
     "river's site",
@@ -35,9 +33,12 @@ function cycleTitle() {
 
 const titleInterval = setInterval(cycleTitle, cycleSpeed);
 
+
+    // Restart the interval if it was cleared
     if (!titleInterval) {
       titleInterval = setInterval(cycleTitle, cycleSpeed);
     }
+  }
 });
     </script>
 </head>
