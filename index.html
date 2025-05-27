@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Typing Speed Test</title>
+    <title>Custom Typing Test</title>
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -31,6 +31,26 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 30px;
             text-align: center;
+        }
+        
+        .setup-screen, .test-screen {
+            width: 100%;
+        }
+        
+        .test-screen {
+            display: none;
+        }
+        
+        .text-input {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 2px solid #3498db;
+            margin-bottom: 20px;
+            font-family: 'Silkscreen', cursive;
+            resize: none;
         }
         
         .target-text {
@@ -131,51 +151,73 @@
 </head>
 <body>
     <div class="container">
-        <h1>TYPING SPEED TEST</h1>
+        <h1>CUSTOM TYPING TEST</h1>
         
-        <div class="target-text" id="targetText">
-            The quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet. Try to type it as quickly and accurately as possible.
+        <div class="setup-screen" id="setupScreen">
+            <h2>ENTER YOUR CUSTOM TEXT</h2>
+            <textarea class="text-input" id="customText" placeholder="Type or paste the text you want to practice..."></textarea>
+            <button id="startTestBtn">START TEST</button>
         </div>
         
-        <textarea class="user-input" id="userInput" placeholder="Start typing here..."></textarea>
-        
-        <div class="results">
-            <div class="wpm-display">
-                <div>WORDS PER MINUTE</div>
-                <div class="wpm-value" id="wpmValue">0</div>
+        <div class="test-screen" id="testScreen">
+            <div class="target-text" id="targetText"></div>
+            <textarea class="user-input" id="userInput" placeholder="Start typing here..."></textarea>
+            
+            <div class="results">
+                <div class="wpm-display">
+                    <div>WORDS PER MINUTE</div>
+                    <div class="wpm-value" id="wpmValue">0</div>
+                </div>
+                <div class="accuracy-display">
+                    <div>ACCURACY</div>
+                    <div class="accuracy-value" id="accuracyValue">0%</div>
+                </div>
             </div>
-            <div class="accuracy-display">
-                <div>ACCURACY</div>
-                <div class="accuracy-value" id="accuracyValue">0%</div>
+            
+            <button id="resetBtn">NEW TEST</button>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
             </div>
-        </div>
-        
-        <button id="resetBtn">RESET TEST</button>
-        
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
         </div>
     </div>
 
     <script>
-        const targetText = document.getElementById('targetText').textContent;
+        const setupScreen = document.getElementById('setupScreen');
+        const testScreen = document.getElementById('testScreen');
+        const customText = document.getElementById('customText');
+        const startTestBtn = document.getElementById('startTestBtn');
+        const targetText = document.getElementById('targetText');
         const userInput = document.getElementById('userInput');
         const wpmValue = document.getElementById('wpmValue');
         const accuracyValue = document.getElementById('accuracyValue');
         const resetBtn = document.getElementById('resetBtn');
         const progressBar = document.getElementById('progressBar');
         
+        let currentTargetText = '';
         let startTime;
-        let timer;
         let isTyping = false;
         
         // Initialize the test
         function initTest() {
+            // Get custom text or use default
+            currentTargetText = customText.value.trim() || 
+                "The quick brown fox jumps over the lazy dog. This sentence contains all the letters in the English alphabet. Try to type it as quickly and accurately as possible.";
+            
+            targetText.textContent = currentTargetText;
             userInput.value = '';
             wpmValue.textContent = '0';
             accuracyValue.textContent = '0%';
             progressBar.style.transform = 'scaleX(0)';
-            userInput.focus();
+            
+            // Switch to test screen
+            setupScreen.style.display = 'none';
+            testScreen.style.display = 'block';
+            
+            // Focus on input after a short delay
+            setTimeout(() => {
+                userInput.focus();
+            }, 100);
         }
         
         // Calculate WPM
@@ -201,7 +243,7 @@
         
         // Update progress
         function updateProgress(input) {
-            const progress = input.length / targetText.length;
+            const progress = input.length / currentTargetText.length;
             progressBar.style.transform = `scaleX(${progress})`;
             
             // Change color based on progress
@@ -230,27 +272,34 @@
             wpmValue.textContent = wpm;
             
             // Calculate accuracy
-            const accuracy = calculateAccuracy(currentText, targetText);
+            const accuracy = calculateAccuracy(currentText, currentTargetText);
             accuracyValue.textContent = accuracy + '%';
             
             // Update progress bar
             updateProgress(currentText);
             
             // Check if test is complete
-            if (currentText.length === targetText.length) {
+            if (currentText.length === currentTargetText.length) {
                 userInput.blur();
                 isTyping = false;
             }
         });
         
+        // Start test button
+        startTestBtn.addEventListener('click', function() {
+            initTest();
+        });
+        
         // Reset button functionality
         resetBtn.addEventListener('click', function() {
-            initTest();
+            testScreen.style.display = 'none';
+            setupScreen.style.display = 'block';
+            customText.focus();
             isTyping = false;
         });
         
-        // Initialize the test on page load
-        initTest();
+        // Initialize with setup screen
+        customText.focus();
     </script>
 </body>
 </html>
