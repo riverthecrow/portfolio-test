@@ -33,8 +33,11 @@ function cycleTitle() {
 
 const titleInterval = setInterval(cycleTitle, cycleSpeed);
 
-
-    // Restart the interval if it was cleared
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    clearInterval(titleInterval);
+  } else {
+      
     if (!titleInterval) {
       titleInterval = setInterval(cycleTitle, cycleSpeed);
     }
