@@ -23,28 +23,18 @@ const titlePresets = [
     "river's site",
 ];
 
-// Time between title changes in milliseconds
-const cycleSpeed = 300;
+const cycleSpeed = 200;
 
 let currentIndex = 0;
 
 function cycleTitle() {
-  // Update the document title
   document.title = titlePresets[currentIndex];
   
-  // Increment index or reset to 0 if at end of array
   currentIndex = (currentIndex + 1) % titlePresets.length;
 }
 
-// Start the cycle
 const titleInterval = setInterval(cycleTitle, cycleSpeed);
 
-// Optional: Stop cycling when tab loses focus
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    clearInterval(titleInterval);
-  } else {
-    // Restart the interval if it was cleared
     if (!titleInterval) {
       titleInterval = setInterval(cycleTitle, cycleSpeed);
     }
