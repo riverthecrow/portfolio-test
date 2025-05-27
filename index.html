@@ -7,45 +7,36 @@
         r
         </title>
     <script>
-        // sigma lil title cycler that i definitely didnt skid uwu
+    // silly lil title cycling thingy that i def didnt skid :3
 const titlePresets = [
-  "ri",
-  "riv",
-  "rive",
-  "river",
+    "r",
+    "ri",
+    "riv",
+    "rive",
+    "river",
     "river'",
     "river's",
     "river's s",
     "river's si",
-    "river's sit", 
+    "river's sit",
     "river's site",
 ];
 
-const cycleSpeed = 200;
+const cycleSpeed = 300;
 
 let currentIndex = 0;
 
 function cycleTitle() {
   document.title = titlePresets[currentIndex];
-  
   currentIndex = (currentIndex + 1) % titlePresets.length;
 }
 
-const titleInterval = setInterval(cycleTitle, cycleSpeed);
-
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    clearInterval(titleInterval);
-  } else {
-      
-    if (!titleInterval) {
-      titleInterval = setInterval(cycleTitle, cycleSpeed);
-    }
-  }
-});
+setInterval(cycleTitle, cycleSpeed);
     </script>
 </head>
 <body>
-
+<div>
+    uwu
+</div>
 </body>
 </html>
