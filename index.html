@@ -1,42 +1,378 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Gear Physics</title>
+    <title>WebGL Gears</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        #container { position: relative; width: 100vw; height: 100vh; }
-        #ui {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            width: 250px;
-        }
-        #error { color: red; margin-top: 10px; }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #fps { position: absolute; top: 10px; left: 10px; color: white; font-family: Arial; }
     </style>
 </head>
 <body>
-    <div id="container">
-        <div id="ui">
-            <h3>Gear Simulator</h3>
-            <div id="error"></div>
-            <select id="gear-type">
-                <option value="spur">Spur Gear</option>
-                <option value="bevel">Bevel Gear</option>
-                <option value="worm">Worm Gear</option>
-            </select>
-            <button id="add-gear">Add Gear</button>
-            <button id="clear-all">Clear All</button>
-        </div>
-    </div>
-
-    <!-- Load Three.js first -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script src="app.js"></script>
+    <div id="fps">FPS: 0</div>
+    <canvas id="glcanvas"></canvas>
+    
+    <script>
+        // Vertex shader source code
+        const vsSource = `
+            attribute vec3 aPosition;
+            attribute vec3 aNormal;
+            attribute vec3 aColor;
+            
+            uniform mat4 uModelViewMatrix;
+            uniform mat4 uProjectionMatrix;
+            uniform mat3 uNormalMatrix;
+            
+            varying vec3 vNormal;
+            varying vec3 vColor;
+            
+            void main() {
+                gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+                vNormal = uNormalMatrix * aNormal;
+                vColor = aColor;
+            }
+        `;
+        
+        // Fragment shader source code
+        const fsSource = `
+            precision mediump float;
+            
+            varying vec3 vNormal;
+            varying vec3 vColor;
+            
+            uniform vec3 uLightDirection;
+            
+            void main() {
+                vec3 normal = normalize(vNormal);
+                float light = max(dot(normal, uLightDirection), 0.0);
+                // Ambient + diffuse
+                float lighting = 0.2 + 0.8 * light;
+                gl_FragColor = vec4(vColor * lighting, 1.0);
+            }
+        `;
+        
+        // Initialize WebGL
+        const canvas = document.getElementById('glcanvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        
+        if (!gl) {
+            alert('Unable to initialize WebGL. Your browser may not support it.');
+        }
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Compile shader
+        function compileShader(source, type) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        // Initialize shader program
+        const vertexShader = compileShader(vsSource, gl.VERTEX_SHADER);
+        const fragmentShader = compileShader(fsSource, gl.FRAGMENT_SHADER);
+        const shaderProgram = gl.createProgram();
+        gl.attachShader(shaderProgram, vertexShader);
+        gl.attachShader(shaderProgram, fragmentShader);
+        gl.linkProgram(shaderProgram);
+        
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            console.error('Shader program link error:', gl.getProgramInfoLog(shaderProgram));
+        }
+        
+        // Get attribute and uniform locations
+        const programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                position: gl.getAttribLocation(shaderProgram, 'aPosition'),
+                normal: gl.getAttribLocation(shaderProgram, 'aNormal'),
+                color: gl.getAttribLocation(shaderProgram, 'aColor'),
+            },
+            uniformLocations: {
+                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
+                lightDirection: gl.getUniformLocation(shaderProgram, 'uLightDirection'),
+            },
+        };
+        
+        // Create gear geometry
+        function createGear(teeth, innerRadius, outerRadius, width, toothDepth) {
+            const vertices = [];
+            const normals = [];
+            const colors = [];
+            const indices = [];
+            
+            const segments = teeth * 2;
+            const angleStep = (Math.PI * 2) / segments;
+            
+            // Create vertices for front and back faces
+            for (let face = 0; face < 2; face++) {
+                const z = face === 0 ? width / 2 : -width / 2;
+                const normalZ = face === 0 ? 1 : -1;
+                
+                for (let i = 0; i <= segments; i++) {
+                    const angle = i * angleStep;
+                    const cosAngle = Math.cos(angle);
+                    const sinAngle = Math.sin(angle);
+                    
+                    // Alternate between inner and outer radius
+                    const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                    
+                    // Position
+                    vertices.push(radius * cosAngle, radius * sinAngle, z);
+                    
+                    // Normal (facing out from the face)
+                    normals.push(0, 0, normalZ);
+                    
+                    // Color (different for each gear)
+                    const hue = (teeth % 12) / 12;
+                    colors.push(
+                        0.5 + 0.5 * Math.cos(hue * Math.PI * 2),
+                        0.5 + 0.5 * Math.cos((hue + 0.333) * Math.PI * 2),
+                        0.5 + 0.5 * Math.cos((hue + 0.666) * Math.PI * 2)
+                    );
+                    
+                    if (i < segments) {
+                        const baseIndex = face * (segments + 1) + i;
+                        indices.push(baseIndex, baseIndex + 1);
+                    }
+                }
+            }
+            
+            // Create vertices for the teeth sides
+            const baseIndex = vertices.length / 3;
+            for (let i = 0; i < segments; i++) {
+                const angle = i * angleStep;
+                const nextAngle = (i + 1) * angleStep;
+                
+                const radius1 = i % 2 === 0 ? outerRadius : innerRadius;
+                const radius2 = i % 2 === 0 ? innerRadius : outerRadius;
+                
+                // Four vertices per segment (two on front, two on back)
+                const v1 = [
+                    radius1 * Math.cos(angle),
+                    radius1 * Math.sin(angle),
+                    width / 2
+                ];
+                const v2 = [
+                    radius2 * Math.cos(nextAngle),
+                    radius2 * Math.sin(nextAngle),
+                    width / 2
+                ];
+                const v3 = [
+                    radius1 * Math.cos(angle),
+                    radius1 * Math.sin(angle),
+                    -width / 2
+                ];
+                const v4 = [
+                    radius2 * Math.cos(nextAngle),
+                    radius2 * Math.sin(nextAngle),
+                    -width / 2
+                ];
+                
+                // Add vertices
+                vertices.push(...v1, ...v2, ...v3, ...v4);
+                
+                // Calculate normal for the side face
+                const edge1 = [v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2]];
+                const edge2 = [v3[0] - v1[0], v3[1] - v1[1], v3[2] - v1[2]];
+                const normal = [
+                    edge1[1] * edge2[2] - edge1[2] * edge2[1],
+                    edge1[2] * edge2[0] - edge1[0] * edge2[2],
+                    edge1[0] * edge2[1] - edge1[1] * edge2[0]
+                ];
+                const len = Math.sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+                normal[0] /= len;
+                normal[1] /= len;
+                normal[2] /= len;
+                
+                // Add normals (same for all four vertices of this face)
+                for (let j = 0; j < 4; j++) {
+                    normals.push(...normal);
+                }
+                
+                // Add colors
+                const hue = (teeth % 12) / 12;
+                const color = [
+                    0.5 + 0.5 * Math.cos(hue * Math.PI * 2),
+                    0.5 + 0.5 * Math.cos((hue + 0.333) * Math.PI * 2),
+                    0.5 + 0.5 * Math.cos((hue + 0.666) * Math.PI * 2)
+                ];
+                for (let j = 0; j < 4; j++) {
+                    colors.push(...color);
+                }
+                
+                // Add indices for two triangles
+                const offset = baseIndex + i * 4;
+                indices.push(offset, offset + 1, offset + 2);
+                indices.push(offset + 1, offset + 3, offset + 2);
+            }
+            
+            return {
+                vertices: new Float32Array(vertices),
+                normals: new Float32Array(normals),
+                colors: new Float32Array(colors),
+                indices: new Uint16Array(indices),
+                vertexCount: indices.length,
+            };
+        }
+        
+        // Create three gears
+        const gears = [
+            { mesh: createGear(16, 0.3, 0.5, 0.2, 0.1), angle: 0, speed: 1, pos: [-0.9, 0.0, 0.0] },
+            { mesh: createGear(12, 0.3, 0.5, 0.2, 0.1), angle: 0, speed: -2, pos: [0.0, 0.0, 0.0] },
+            { mesh: createGear(20, 0.3, 0.5, 0.2, 0.1), angle: 0, speed: 1.5, pos: [0.9, 0.0, 0.0] },
+        ];
+        
+        // Initialize buffers for each gear
+        gears.forEach(gear => {
+            gear.buffers = {
+                vertex: gl.createBuffer(),
+                normal: gl.createBuffer(),
+                color: gl.createBuffer(),
+                index: gl.createBuffer(),
+            };
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.vertex);
+            gl.bufferData(gl.ARRAY_BUFFER, gear.mesh.vertices, gl.STATIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.normal);
+            gl.bufferData(gl.ARRAY_BUFFER, gear.mesh.normals, gl.STATIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.color);
+            gl.bufferData(gl.ARRAY_BUFFER, gear.mesh.colors, gl.STATIC_DRAW);
+            
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gear.buffers.index);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, gear.mesh.indices, gl.STATIC_DRAW);
+        });
+        
+        // Set up projection matrix
+        const projectionMatrix = mat4.create();
+        mat4.perspective(projectionMatrix, 45 * Math.PI / 180, canvas.width / canvas.height, 0.1, 100.0);
+        
+        // Set up lighting
+        const lightDirection = vec3.fromValues(0.5, 0.7, 1.0);
+        vec3.normalize(lightDirection, lightDirection);
+        
+        // Camera position
+        const cameraPosition = vec3.fromValues(0, 0, 3);
+        
+        // FPS counter
+        let lastTime = 0;
+        let frameCount = 0;
+        let fps = 0;
+        const fpsElement = document.getElementById('fps');
+        
+        // Draw the scene
+        function render(currentTime) {
+            // Calculate FPS
+            frameCount++;
+            if (currentTime - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = currentTime;
+                fpsElement.textContent = `FPS: ${fps}`;
+            }
+            
+            // Clear the canvas
+            gl.clearColor(0.1, 0.1, 0.1, 1.0);
+            gl.clearDepth(1.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            
+            // Set camera view
+            const modelViewMatrix = mat4.create();
+            mat4.lookAt(modelViewMatrix, cameraPosition, [0, 0, 0], [0, 1, 0]);
+            
+            // Draw each gear
+            gears.forEach(gear => {
+                // Update rotation angle
+                gear.angle += gear.speed * 0.01;
+                if (gear.angle > Math.PI * 2) gear.angle -= Math.PI * 2;
+                
+                // Create model matrix
+                const gearMatrix = mat4.create();
+                mat4.translate(gearMatrix, gearMatrix, gear.pos);
+                mat4.rotateZ(gearMatrix, gearMatrix, gear.angle);
+                
+                // Combine with view matrix
+                const mvMatrix = mat4.create();
+                mat4.multiply(mvMatrix, modelViewMatrix, gearMatrix);
+                
+                // Calculate normal matrix
+                const normalMatrix = mat3.create();
+                mat3.normalFromMat4(normalMatrix, mvMatrix);
+                
+                // Bind buffers
+                gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.vertex);
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.position,
+                    3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.position);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.normal);
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.normal,
+                    3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.normal);
+                
+                gl.bindBuffer(gl.ARRAY_BUFFER, gear.buffers.color);
+                gl.vertexAttribPointer(
+                    programInfo.attribLocations.color,
+                    3, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(programInfo.attribLocations.color);
+                
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gear.buffers.index);
+                
+                // Set shader uniforms
+                gl.useProgram(programInfo.program);
+                
+                gl.uniformMatrix4fv(
+                    programInfo.uniformLocations.projectionMatrix,
+                    false,
+                    projectionMatrix);
+                
+                gl.uniformMatrix4fv(
+                    programInfo.uniformLocations.modelViewMatrix,
+                    false,
+                    mvMatrix);
+                
+                gl.uniformMatrix3fv(
+                    programInfo.uniformLocations.normalMatrix,
+                    false,
+                    normalMatrix);
+                
+                gl.uniform3fv(
+                    programInfo.uniformLocations.lightDirection,
+                    lightDirection);
+                
+                // Draw
+                gl.drawElements(gl.TRIANGLES, gear.mesh.vertexCount, gl.UNSIGNED_SHORT, 0);
+            });
+            
+            // Request next frame
+            requestAnimationFrame(render);
+        }
+        
+        // Start rendering
+        requestAnimationFrame(render);
+    </script>
 </body>
 </html>
