@@ -3,342 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Gear Physics</title>
-    <style>
-        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
-        #container { position: relative; width: 100vw; height: 100vh; }
-        #ui {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border-radius: 5px;
-            width: 250px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        #mode-display { margin: 5px 0; font-weight: bold; }
-    </style>
+    <title>
+        <script>// Array of title presets to cycle through
+const titlePresets = [
+  "r",
+  "ri",
+  "riv",
+  "rive",
+    "river",
+    "river'",
+    "river's",
+    "river's ",
+    "river's s", 
+    "river's si",
+    "river's sit", 
+    "river's site",
+];
+
+// Time between title changes in milliseconds
+const cycleSpeed = 300;
+
+let currentIndex = 0;
+
+function cycleTitle() {
+  // Update the document title
+  document.title = titlePresets[currentIndex];
+  
+  // Increment index or reset to 0 if at end of array
+  currentIndex = (currentIndex + 1) % titlePresets.length;
+}
+
+// Start the cycle
+const titleInterval = setInterval(cycleTitle, cycleSpeed);
+
+// Optional: Stop cycling when tab loses focus
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    clearInterval(titleInterval);
+  } else {
+    // Restart the interval if it was cleared
+    if (!titleInterval) {
+      titleInterval = setInterval(cycleTitle, cycleSpeed);
+    }
+  }
+});</script>
+        </title>
 </head>
 <body>
-    <div id="container">
-        <div id="ui">
-            <h3>Gear Physics Simulator</h3>
-            <div id="mode-display">Mode: Add Gears</div>
-            <button id="toggle-mode">Switch to Move Mode</button>
-            <select id="gear-type">
-                <option value="spur">Spur Gear</option>
-                <option value="bevel">Bevel Gear</option>
-                <option value="worm">Worm Gear</option>
-            </select>
-            <button id="add-gear">Add Gear</button>
-            <button id="create-connection">Create Connection</button>
-            <button id="clear-all">Clear All</button>
-        </div>
-    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
-    <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Physics world setup
-    const world = new CANNON.World();
-    world.gravity.set(0, 0, 0); // No gravity
-    world.broadphase = new CANNON.NaiveBroadphase();
-    world.solver.iterations = 10;
-    
-    // Contact material for gear interactions
-    const gearMaterial = new CANNON.Material("gearMaterial");
-    const gearContactMaterial = new CANNON.ContactMaterial(
-        gearMaterial, gearMaterial, {
-            friction: 0.3,
-            restitution: 0.0,
-            contactEquationStiffness: 1e8,
-            contactEquationRelaxation: 3
-        }
-    );
-    world.addContactMaterial(gearContactMaterial);
-
-    // Scene setup
-    const container = document.getElementById('container');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
-    
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 30, 50);
-    camera.lookAt(0, 0, 0);
-    
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    container.appendChild(renderer.domElement);
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040);
-    scene.add(ambientLight);
-    
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(1, 1, 1);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
-
-    // Variables
-    let gears = [];
-    let selectedGear = null;
-    let mouse = new THREE.Vector2();
-    let raycaster = new THREE.Raycaster();
-    let isMoveMode = false;
-    let isCreatingConnection = false;
-    let firstGearForConnection = null;
-
-    // UI Elements
-    const modeDisplay = document.getElementById('mode-display');
-    const toggleModeBtn = document.getElementById('toggle-mode');
-    const addGearBtn = document.getElementById('add-gear');
-    const createConnectionBtn = document.getElementById('create-connection');
-
-    // Gear creation functions
-    function createSpurGear(teeth = 12, radius = 5, thickness = 2, color = 0x8888ff) {
-        const gearGroup = new THREE.Group();
-        
-        // Create gear geometry
-        const gearGeometry = createGearGeometry(teeth, radius, thickness);
-        const gearMaterial = new THREE.MeshPhongMaterial({ color, flatShading: true });
-        const gearMesh = new THREE.Mesh(gearGeometry, gearMaterial);
-        gearMesh.rotation.x = Math.PI / 2;
-        gearMesh.castShadow = true;
-        gearGroup.add(gearMesh);
-        
-        // Physics body
-        const gearShape = new CANNON.Cylinder(
-            radius * 0.9, radius * 0.9, thickness, 16
-        );
-        
-        // Random position that doesn't overlap with existing gears
-        let position;
-        let attempts = 0;
-        do {
-            position = new CANNON.Vec3(
-                (Math.random() - 0.5) * 30,
-                thickness / 2,
-                (Math.random() - 0.5) * 30
-            );
-            attempts++;
-        } while (gears.some(g => g.userData.body.position.distanceTo(position) < 10) && attempts < 100);
-        
-        const gearBody = new CANNON.Body({
-            mass: 1,
-            shape: gearShape,
-            material: gearMaterial,
-            position: position,
-            angularDamping: 0.5
-        });
-        
-        // Add properties to the gear object
-        gearGroup.userData = {
-            type: 'spur',
-            teeth,
-            radius,
-            thickness,
-            color,
-            speed: 0.5,
-            direction: 1,
-            mesh: gearMesh,
-            body: gearBody,
-            connections: [],
-            isDriver: false
-        };
-        
-        world.addBody(gearBody);
-        return gearGroup;
-    }
-
-    // Similar createBevelGear and createWormGear functions would go here
-    // (They would follow the same pattern as createSpurGear)
-
-    // Helper functions for geometry creation would go here
-    // (Same as in previous versions)
-
-    // Add gear to scene with non-overlapping position
-    function addGear(type) {
-        let gear;
-        switch(type) {
-            case 'spur': gear = createSpurGear(); break;
-            // Add cases for other gear types
-            default: gear = createSpurGear();
-        }
-        
-        scene.add(gear);
-        gears.push(gear);
-    }
-
-    // Create connection between two gears
-    function createConnection(gear1, gear2) {
-        // Prevent duplicate connections
-        if (gear1.userData.connections.some(c => c.gear === gear2)) return;
-        
-        // Calculate distance between gears
-        const distance = gear1.userData.body.position.distanceTo(gear2.userData.body.position);
-        const minDistance = gear1.userData.radius + gear2.userData.radius;
-        
-        // If gears are too far apart, move them closer
-        if (distance > minDistance * 1.2) {
-            const direction = new CANNON.Vec3();
-            direction.sub(gear2.userData.body.position, gear1.userData.body.position);
-            direction.normalize();
-            direction.scale((distance - minDistance) / 2, direction);
-            
-            gear1.userData.body.position.vadd(direction, gear1.userData.body.position);
-            gear2.userData.body.position.vsub(direction, gear2.userData.body.position);
-        }
-        
-        // Create constraint to keep gears together
-        const constraint = new CANNON.DistanceConstraint(
-            gear1.userData.body,
-            gear2.userData.body,
-            gear1.userData.radius + gear2.userData.radius
-        );
-        world.addConstraint(constraint);
-        
-        // Store connection info
-        const ratio = gear1.userData.teeth / gear2.userData.teeth || 1;
-        gear1.userData.connections.push({ gear: gear2, ratio, constraint });
-        gear2.userData.connections.push({ gear: gear1, ratio: 1/ratio, constraint });
-    }
-
-    // Mouse interaction functions
-    function onMouseMove(event) {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        
-        if (isMoveMode && selectedGear) {
-            // Move selected gear with mouse
-            raycaster.setFromCamera(mouse, camera);
-            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-            const intersection = new THREE.Vector3();
-            raycaster.ray.intersectPlane(plane, intersection);
-            
-            selectedGear.userData.body.position.set(
-                intersection.x,
-                selectedGear.userData.thickness ? selectedGear.userData.thickness/2 : 1,
-                intersection.z
-            );
-            selectedGear.userData.body.velocity.set(0, 0, 0);
-        }
-    }
-
-    function onMouseClick(event) {
-        if (event.target.closest('#ui')) return;
-        
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(gears);
-        
-        if (intersects.length > 0) {
-            const clickedGear = intersects[0].object.parent;
-            
-            if (isCreatingConnection) {
-                if (!firstGearForConnection) {
-                    firstGearForConnection = clickedGear;
-                    createConnectionBtn.textContent = "Connecting to " + clickedGear.userData.type;
-                } else {
-                    createConnection(firstGearForConnection, clickedGear);
-                    resetConnectionMode();
-                }
-            } else if (isMoveMode) {
-                selectedGear = clickedGear;
-                // Highlight selected gear
-                clickedGear.children[0].material.emissive.setHex(0x333333);
-            }
-        } else if (!isCreatingConnection && isMoveMode && selectedGear) {
-            // Deselect gear when clicking empty space
-            selectedGear.children[0].material.emissive.setHex(0x000000);
-            selectedGear = null;
-        }
-    }
-
-    function resetConnectionMode() {
-        isCreatingConnection = false;
-        firstGearForConnection = null;
-        createConnectionBtn.textContent = "Create Connection";
-        createConnectionBtn.style.backgroundColor = "";
-    }
-
-    // Animation loop
-    function animate() {
-        requestAnimationFrame(animate);
-        world.step(1/60);
-        
-        // Update Three.js objects to match physics
-        gears.forEach(gear => {
-            gear.position.copy(gear.userData.body.position);
-            gear.quaternion.copy(gear.userData.body.quaternion);
-            
-            // Apply driver rotation if this is a driver gear
-            if (gear.userData.isDriver) {
-                const speed = gear.userData.speed * gear.userData.direction;
-                if (gear.userData.type === 'worm') {
-                    gear.userData.body.angularVelocity.set(0, speed, 0);
-                } else {
-                    gear.userData.body.angularVelocity.set(0, 0, speed);
-                }
-            }
-        });
-        
-        renderer.render(scene, camera);
-    }
-
-    // Event listeners
-    toggleModeBtn.addEventListener('click', function() {
-        isMoveMode = !isMoveMode;
-        modeDisplay.textContent = isMoveMode ? "Mode: Move Gears" : "Mode: Add Gears";
-        toggleModeBtn.textContent = isMoveMode ? "Switch to Add Mode" : "Switch to Move Mode";
-        
-        if (selectedGear) {
-            selectedGear.children[0].material.emissive.setHex(0x000000);
-            selectedGear = null;
-        }
-    });
-
-    addGearBtn.addEventListener('click', function() {
-        const type = document.getElementById('gear-type').value;
-        addGear(type);
-    });
-
-    createConnectionBtn.addEventListener('click', function() {
-        isCreatingConnection = !isCreatingConnection;
-        if (isCreatingConnection) {
-            createConnectionBtn.style.backgroundColor = "#ffcccc";
-        } else {
-            resetConnectionMode();
-        }
-    });
-
-    document.getElementById('clear-all').addEventListener('click', function() {
-        gears.forEach(gear => {
-            gear.userData.connections.forEach(conn => {
-                world.removeConstraint(conn.constraint);
-            });
-            world.removeBody(gear.userData.body);
-            scene.remove(gear);
-        });
-        gears = [];
-        selectedGear = null;
-        resetConnectionMode();
-    });
-
-    // Set up mouse events
-    window.addEventListener('mousemove', onMouseMove, false);
-    window.addEventListener('click', onMouseClick, false);
-    window.addEventListener('resize', function() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Start animation
-    animate();
-});
-    </script>
 </body>
 </html>
