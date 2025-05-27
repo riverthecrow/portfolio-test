@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Gear Physics with Collisions</title>
+    <title>Interactive Gear Physics</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
         #container { position: relative; width: 100vw; height: 100vh; }
@@ -15,26 +15,15 @@
             padding: 10px;
             border-radius: 5px;
             width: 250px;
-            max-height: 90vh;
-            overflow-y: auto;
         }
-        #gear-controls {
-            margin-top: 10px;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-        }
-        button, select, input { margin: 5px 0; width: 100%; }
-        .property-row { display: flex; justify-content: space-between; }
-        .property-row input { width: 60%; }
-        .property-row label { width: 35%; }
-        #connections { margin-top: 10px; }
-        .connection-item { padding: 5px; border-bottom: 1px solid #eee; }
+        #error { color: red; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div id="container">
         <div id="ui">
-            <h3>Gear Physics Simulator</h3>
+            <h3>Gear Simulator</h3>
+            <div id="error"></div>
             <select id="gear-type">
                 <option value="spur">Spur Gear</option>
                 <option value="bevel">Bevel Gear</option>
@@ -42,24 +31,12 @@
             </select>
             <button id="add-gear">Add Gear</button>
             <button id="clear-all">Clear All</button>
-            
-            <div id="gear-controls">
-                <p>Select a gear to edit</p>
-                <div id="gear-properties">
-                    <!-- Dynamically populated -->
-                </div>
-                
-                <div id="connection-controls" style="display: none;">
-                    <h4>Gear Connections</h4>
-                    <select id="connect-to"></select>
-                    <button id="create-connection">Create Connection</button>
-                    <div id="connections"></div>
-                </div>
-            </div>
         </div>
     </div>
 
+    <!-- Load Three.js first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
     <script src="app.js"></script>
 </body>
+</html>
