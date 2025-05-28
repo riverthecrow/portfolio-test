@@ -89,3 +89,85 @@
   border-radius: 3%;
   font-size: 1.5vh;
  }
+
+.music-player {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+}
+
+.player-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    margin: 0 15px;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.2s;
+}
+
+.control-btn:hover {
+    color: #1db954;
+}
+
+.song-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+#songTitle {
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.progress-container {
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    height: 5px;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.progress {
+    height: 100%;
+    background-color: #1db954;
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.1s;
+}
+
+.volume-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.volume-icon {
+    color: #666;
+    font-size: 16px;
+}
+
+#volumeSlider {
+    width: 70%;
+    cursor: pointer;
+    accent-color: #1db954;
+}
