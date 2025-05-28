@@ -1,7 +1,7 @@
 /* cssigma */
 .sigma {
-  font-family: 'VCR_OSD_MONO_1.001';
-  src: url('VCR_OSD_MONO_1.001.ttf');
+  font-family: 'VCR_OSD_MONO';
+  src: url('VCR_OSD_MONO_1.ttf');
 }
 .crt-overlay {
             position: fixed;
