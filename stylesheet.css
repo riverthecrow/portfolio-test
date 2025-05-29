@@ -219,8 +219,8 @@ body, html {
     display: flex;
     justify-content: center;
     border-radius: 50%;
-    min-height: 20%;
-    min-width: 20%;
+    max-height: 20%;
+    max-width: 20%;
     border: 1% solid red;
 }
     
