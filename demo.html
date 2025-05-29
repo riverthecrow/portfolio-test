@@ -4,6 +4,31 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>r</title>
+    <script>
+const titlePresets = [
+  "r",
+  "ri",
+  "riv",
+  "rive",
+    "river",
+    "river'",
+    "river's",
+    "river's si",
+    "river's sit",
+    "river's site",
+];
+
+const cycleSpeed = 200;
+
+let currentIndex = 0;
+
+function cycleTitle() {
+  document.title = titlePresets[currentIndex];
+  currentIndex = (currentIndex + 1) % titlePresets.length;
+}
+
+setInterval(cycleTitle, cycleSpeed);
+    </script>
     <link href="stylesheet.css" rel="stylesheet">
     <style>
 </head>
