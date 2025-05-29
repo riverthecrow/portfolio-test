@@ -9,3 +9,28 @@
 .ultrakill {
     font-family: 'VCR OSD Mono';
 }
+.box { 
+    background: black);
+border: 0.5vh solid;
+    border-color: white;
+padding: 1%;
+height: 87%;
+opacity: 0.8;
+width: 22.5%;
+border-radius: 3%;
+    font-size: 1.5vh;
+    color: white;
+    }
+.centered {
+display: flex;
+justify-content: center;
+align-items: center;
+height: 90vh; 
+    }
+body, html {  
+  margin: 0;
+  padding: 0;
+  height: 100%;
+    width: 100%;
+  overflow: hidden;
+}
