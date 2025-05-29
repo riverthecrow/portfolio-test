@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const audio = new Audio();
     let currentSongIndex = 0;
-    let isPlaying = true; // Start with true for autoplay
+    let isPlaying = false;
 
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
@@ -33,21 +33,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeSlider = document.getElementById('volumeSlider');
 
     function loadSong(index) {
-        audio.pause();
-        audio.currentTime = 0;
-        
         const song = songs[index];
-        songTitle.textContent = song.title;
+        songTitle.textContent = song.title; 
         audio.src = song.src;
-        
+
         audio.play()
             .then(() => {
                 isPlaying = true;
                 playPauseIcon.classList.replace('fa-play', 'fa-pause');
             })
             .catch(error => {
-                console.log("Autoplay prevented:", error);
-                // If autoplay is blocked, set to paused state
+                console.log("Autoplay was prevented:", error);
                 isPlaying = false;
                 playPauseIcon.classList.replace('fa-pause', 'fa-play');
             });
@@ -61,9 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.play()
                 .then(() => {
                     playPauseIcon.classList.replace('fa-play', 'fa-pause');
-                })
-                .catch(error => {
-                    console.log("Playback failed:", error);
                 });
         }
         isPlaying = !isPlaying;
@@ -103,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.volume = volumeSlider.value;
     }
 
-    
     playPauseBtn.addEventListener('click', togglePlay);
     prevBtn.addEventListener('click', prevSong);
     nextBtn.addEventListener('click', nextSong);
@@ -112,8 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
     progressBar.addEventListener('click', setProgress);
     volumeSlider.addEventListener('input', setVolume);
 
-    
-    document.addEventListener('click', function() {
+    loadSong(currentSongIndex);
+
+    document.addEventListener('click', function initPlayback() {
         if (!isPlaying) {
             audio.play()
                 .then(() => {
@@ -121,6 +114,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     playPauseIcon.classList.replace('fa-play', 'fa-pause');
                 });
         }
+        document.removeEventListener('click', initPlayback);
     }, { once: true });
 });
-
