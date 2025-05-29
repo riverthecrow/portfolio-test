@@ -19,9 +19,6 @@ opacity: 1.0;
 width: 22.5%;
 border-radius: 5vh;
     font-size: 1.5vh;
-    display: flex;
-    justify-content: center;
-    
     }
 .centered {
 display: flex;
@@ -38,5 +35,5 @@ body, html {
 }
 .white-text {
     color: white;
-    margin: auto;
+    margin: 50%;
 }
