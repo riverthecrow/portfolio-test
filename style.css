@@ -1,12 +1,21 @@
 /* cssigma */
-@fontface {
-  font-family: 'VCR_OSD_MONO';
-  src: url('/assets/VCR_OSD_MONO_1.001.ttf');
+<link rel="preload" href="VCROSDMono.ttf" as="font" type="font/ttf" crossorigin>
+
+@font-face {
+    font-family: 'VCR OSD Mono';
+    src: url('VCROSDMono.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
 
-.ultrakill {
-  font-family: 'VRC_OSD_MONO';
+body {
+      font-family: 'VCR OSD Mono';
+    font-weight: normal;
+    font-style: normal;
+  
 }
+
 .crt-overlay {
   
             position: fixed;
