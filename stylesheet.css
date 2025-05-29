@@ -36,16 +36,3 @@ body, html {
 .white-text {
     color: white;
 }
-.projects {
-    background: linear-gradient(225deg, black, black, black, black);
-border: 0.5vh solid;
-    border-color: rgba(0, 0, 0, 1.0);
-padding: 1%;
-height: 87%;
-opacity: 1.0;
-width: 22.5%;
-border-radius: 5vh;
-    font-size: 1.5vh;
- left: 100%;
-height: 90vh; 
-}
