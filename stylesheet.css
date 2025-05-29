@@ -215,6 +215,16 @@ body, html {
     transform-origin: center;
 }
 
+#pfp {
+    display: flex;
+    justify-content: center;
+    border-radius: 50%;
+    min-height: 20%;
+    min-width: 20%;
+    border: 1% solid red;
+}
+    
+
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
