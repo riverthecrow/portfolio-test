@@ -3,7 +3,12 @@
   font-family: 'VCR_OSD_MONO';
   src: url('VCR_OSD_MONO_1.ttf');
 }
+
+body {
+  font-family: 'VRC_OSD_MONO';
+}
 .crt-overlay {
+  
             position: fixed;
             top: 0;
             left: 0;
