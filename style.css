@@ -4,7 +4,7 @@
   src: url('assets/VCR_OSD_MONO_1.001.ttf');
 }
 
-body {
+.ultrakill {
   font-family: 'VRC_OSD_MONO';
 }
 .crt-overlay {
