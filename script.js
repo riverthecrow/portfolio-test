@@ -8,16 +8,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     const songs = [
         {
-            title: "KAT - Dizzy Paranoia Girl",
-            src: "dizzyparanoia.mp3"
+            title: "KAT - Left Behind Generation",
+            src: "leftbehindgeneration.mp3"
         },
         {
             title: "KAT - Affection Addiction",
             src: "affectionaddiction.mp3"
         },
         {
-            title: "KAT - Left Behind Generation",
-            src: "leftbehindgeneration.mp3"
+            title: "KAT - Dizzy Paranoia Girl",
+            src: "dizzyparanoia.mp3"
         },
         {
             title: "JamieP - FIRE!!!",
