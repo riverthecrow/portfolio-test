@@ -96,33 +96,45 @@ body {
  }
 
 .music-player {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: 300px;
-    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #ffb6b6; 
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-top: 1px solid #ff9e9e;
 }
 
 .player-controls {
     display: flex;
-    justify-content: center;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 0;
+    flex: 0 0 auto;
 }
 
 .control-btn {
     background: none;
     border: none;
-    font-size: 24px;
-    margin: 0 15px;
+    font-size: 20px;
+    margin: 0 10px;
     cursor: pointer;
-    color: #333;
+    color: #7a2a2a; 
     transition: color 0.2s;
 }
 
 .control-btn:hover {
-    color: #1db954;
+    color: #d32f2f;
+}
+
+.progress-container {
+    flex: 1 1 auto;
+    margin: 0 20px;
+    max-width: 500px;
 }
 
 .song-info {
@@ -130,6 +142,7 @@ body {
     justify-content: space-between;
     margin-bottom: 5px;
     font-size: 14px;
+    color: #5c1a1a; 
 }
 
 #songTitle {
@@ -140,20 +153,16 @@ body {
     max-width: 70%;
 }
 
-.progress-container {
-    margin-bottom: 20px;
-}
-
 .progress-bar {
     height: 5px;
-    background-color: #e0e0e0;
+    background-color: rgba(122, 42, 42, 0.2);
     border-radius: 5px;
     cursor: pointer;
 }
 
 .progress {
     height: 100%;
-    background-color: #1db954;
+    background-color: #d32f2f;
     border-radius: 5px;
     width: 0%;
     transition: width 0.1s;
@@ -162,17 +171,17 @@ body {
 .volume-control {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    gap: 8px;
+    flex: 0 0 150px;
 }
 
 .volume-icon {
-    color: #666;
-    font-size: 16px;
+    color: #7a2a2a;
+    font-size: 14px;
 }
 
 #volumeSlider {
-    width: 70%;
+    width: 100%;
     cursor: pointer;
-    accent-color: #1db954;
+    accent-color: #d32f2f;
 }
