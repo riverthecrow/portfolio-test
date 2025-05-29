@@ -124,3 +124,81 @@ document.addEventListener('DOMContentLoaded', function() {
         document.removeEventListener('click', initPlayback);
     }, { once: true });
 });
+
+// Add this to your existing script.js
+async function detectBPM(audioElement) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaElementSource(audioElement);
+    const analyser = audioContext.createAnalyser();
+    source.connect(analyser);
+    analyser.connect(audioContext.destination);
+    
+    // Simple BPM detection (this is a basic implementation)
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    let beats = 0;
+    let lastBeatTime = 0;
+    let bpm = 120; // Default BPM
+    
+    function analyze() {
+        analyser.getByteTimeDomainData(dataArray);
+        let sum = 0;
+        
+        for (let i = 0; i < bufferLength; i++) {
+            sum += Math.abs(dataArray[i] - 128);
+        }
+        
+        const average = sum / bufferLength;
+        
+        // Simple beat detection
+        if (average > 20) { // Threshold may need adjustment
+            const now = audioContext.currentTime;
+            if (now - lastBeatTime > 0.2) { // Debounce
+                beats++;
+                if (beats > 10) { // Calculate BPM after 10 beats
+                    bpm = Math.round(60 / ((now - lastBeatTime) * beats));
+                    beats = 0;
+                    updatePulseAnimation(bpm);
+                }
+                lastBeatTime = now;
+            }
+        }
+        
+        requestAnimationFrame(analyze);
+    }
+    
+    analyze();
+    return bpm;
+}
+
+function updatePulseAnimation(bpm) {
+    const pulseElements = document.querySelectorAll('.pulse-animation');
+    const pulseDuration = 60 / bpm; // Convert BPM to seconds per beat
+    
+    pulseElements.forEach(el => {
+        el.style.animationDuration = `${pulseDuration}s`;
+    });
+}
+
+
+async function loadSong(index) {
+    const song = songs[index];
+    songTitle.textContent = song.title;
+    audio.src = song.src;
+    
+
+    const response = await fetch(song.src);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const bpm = await detectBPM(audio); 
+    updatePulseAnimation(bpm || 120); 
+    
+    if (isPlaying) {
+        audio.play();
+    }
+}
+
+audio.addEventListener('play', () => {
+    detectBPM(audio);
+});
