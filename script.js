@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
             title: "KAT - Left Behind Generation",
             src: "leftbehindgeneration.mp3"
         },
-       {
+        {
             title: "JamieP - FIRE!!!",
             src: "fire.mp3"
         }
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const audio = new Audio();
     let currentSongIndex = 0;
-    let isPlaying = false;
+    let isPlaying = true; // Start with true for autoplay
 
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
@@ -33,13 +33,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const volumeSlider = document.getElementById('volumeSlider');
 
     function loadSong(index) {
+        audio.pause();
+        audio.currentTime = 0;
+        
         const song = songs[index];
         songTitle.textContent = song.title;
         audio.src = song.src;
         
-        if (isPlaying) {
-            audio.play();
-        }
+        audio.play()
+            .then(() => {
+                isPlaying = true;
+                playPauseIcon.classList.replace('fa-play', 'fa-pause');
+            })
+            .catch(error => {
+                console.log("Autoplay prevented:", error);
+                // If autoplay is blocked, set to paused state
+                isPlaying = false;
+                playPauseIcon.classList.replace('fa-pause', 'fa-play');
+            });
     }
 
     function togglePlay() {
@@ -47,8 +58,13 @@ document.addEventListener('DOMContentLoaded', function() {
             audio.pause();
             playPauseIcon.classList.replace('fa-pause', 'fa-play');
         } else {
-            audio.play();
-            playPauseIcon.classList.replace('fa-play', 'fa-pause');
+            audio.play()
+                .then(() => {
+                    playPauseIcon.classList.replace('fa-play', 'fa-pause');
+                })
+                .catch(error => {
+                    console.log("Playback failed:", error);
+                });
         }
         isPlaying = !isPlaying;
     }
@@ -87,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.volume = volumeSlider.value;
     }
 
+    
     playPauseBtn.addEventListener('click', togglePlay);
     prevBtn.addEventListener('click', prevSong);
     nextBtn.addEventListener('click', nextSong);
@@ -95,5 +112,14 @@ document.addEventListener('DOMContentLoaded', function() {
     progressBar.addEventListener('click', setProgress);
     volumeSlider.addEventListener('input', setVolume);
 
-    loadSong(currentSongIndex);
+    
+    document.addEventListener('click', function() {
+        if (!isPlaying) {
+            audio.play()
+                .then(() => {
+                    isPlaying = true;
+                    playPauseIcon.classList.replace('fa-play', 'fa-pause');
+                });
+        }
+    }, { once: true });
 });
