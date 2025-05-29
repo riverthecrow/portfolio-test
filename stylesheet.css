@@ -209,3 +209,13 @@ body, html {
   transition: opacity 1s ease;
   font-family: 'VCR OSD Mono';
 }
+
+.pulse-animation {
+    animation: pulse 1s infinite ease-in-out;
+    transform-origin: center;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
