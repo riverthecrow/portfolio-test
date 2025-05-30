@@ -209,12 +209,6 @@ body, html {
   transition: opacity 1s ease;
   font-family: 'VCR OSD Mono';
 }
-
-.pulse-animation {
-    animation: pulse 1s infinite ease-in-out;
-    transform-origin: center;
-}
-
 #pfp {
     display: flex;
     justify-content: center;
