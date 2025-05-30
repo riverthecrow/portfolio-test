@@ -124,36 +124,3 @@ document.addEventListener('DOMContentLoaded', function() {
         document.removeEventListener('click', initPlayback);
     }, { once: true });
 });
-
-function setupVolumePulse() {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const source = audioContext.createMediaElementSource(audio);
-    const analyser = audioContext.createAnalyser();
-    source.connect(analyser);
-    analyser.connect(audioContext.destination);
-    
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    
-    function analyze() {
-        analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        
-        for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-        }
-        
-        const average = sum / bufferLength;
-        const scale = 1 + (average / 255) * 0.2; 
-        
-        document.querySelectorAll('.pulse-animation').forEach(el => {
-            el.style.transform = `scale(${scale})`;
-        });
-        
-        requestAnimationFrame(analyze);
-    }
-    
-    analyze();
-}
-
-audio.addEventListener('play', setupVolumePulse);
