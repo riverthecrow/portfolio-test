@@ -8,16 +8,20 @@
 document.addEventListener('DOMContentLoaded', function() {
     const songs = [
         {
-            title: "KAT - Left Behind Generation",
-            src: "leftbehindgeneration.mp3"
+            title: "ECHO-ReAdmission Remix - Crusher-P - ",
+            src: "echoreadmission.mp3"
         },
         {
-            title: "KAT - Affection Addiction",
-            src: "affectionaddiction.mp3"
+            title: "Grindhouse - Machine Girl",
+            src: "grindhouse.mp3"
         },
+     {
+      title: "Robot Stop - King Gizzard & The Lizard Wizard",
+      src: "robotstop.mp3"
+     },
         {
-            title: "KAT - Dizzy Paranoia Girl",
-            src: "dizzyparanoia.mp3"
+            title: "SCAPEGOAT - Ghost and Pals",
+            src: "scapegoat.mp3"
         },
         {
             title: "JamieP - FIRE!!!",
