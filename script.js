@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const songs = [
         {
-            title: "ECHO-ReAdmission Remix - Crusher-P - ",
+            title: "ECHO-ReAdmission Remix - Crusher-P",
             src: "echoreadmission.mp3"
         },
         {
