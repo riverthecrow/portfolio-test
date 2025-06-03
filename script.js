@@ -1,9 +1,10 @@
- overlay.addEventListener('click', () => {
-        overlay.style.opacity = '0';
-        setTimeout(() => {
-            overlay.style.display = 'none';
-        }, 1000);
-    });
+
+overlay.addEventListener('click', () => {
+    overlay.style.opacity = '0';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 1000);
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     const songs = [
@@ -15,10 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
             title: "Grindhouse - Machine Girl",
             src: "grindhouse.mp3"
         },
-     {
-      title: "Robot Stop - King Gizzard & The Lizard Wizard",
-      src: "robotstop.mp3"
-     },
+        {
+            title: "Robot Stop - King Gizzard & The Lizard Wizard",
+            src: "robotstop.mp3"
+        },
         {
             title: "SCAPEGOAT - Ghost and Pals",
             src: "scapegoat.mp3"
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const audio = new Audio();
     let currentSongIndex = 0;
     let isPlaying = false;
+    let audioContext, analyser, dataArray;
 
     const playPauseBtn = document.getElementById('playPauseBtn');
     const playPauseIcon = document.getElementById('playPauseIcon');
@@ -43,10 +45,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const songTime = document.getElementById('songTime');
     const volumeSlider = document.getElementById('volumeSlider');
 
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+
+    function initAudioContext() {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+    }
+
+    function visualize() {
+        if (!analyser) return;
+        
+        requestAnimationFrame(visualize);
+        
+        analyser.getByteFrequencyData(dataArray);
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / dataArray.length) * 2.5;
+        let x = 0;
+        
+        for (let i = 0; i < dataArray.length; i++) {
+            const barHeight = (dataArray[i] / 255) * canvas.height;
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(255, 0, 0, 0.8)');
+            gradient.addColorStop(0.7, 'rgba(255, 100, 0, 0.6)');
+            gradient.addColorStop(1, 'rgba(255, 200, 0, 0.4)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            
+            x += barWidth + 1;
+        }
+    }
+
     function loadSong(index) {
         const song = songs[index];
         songTitle.textContent = song.title; 
         audio.src = song.src;
+
+        // Initialize audio context on first play
+        if (!audioContext) {
+            initAudioContext();
+            visualize();
+        }
 
         audio.play()
             .then(() => {
@@ -107,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.volume = volumeSlider.value;
     }
 
+    // Event listeners
     playPauseBtn.addEventListener('click', togglePlay);
     prevBtn.addEventListener('click', prevSong);
     nextBtn.addEventListener('click', nextSong);
@@ -114,6 +168,11 @@ document.addEventListener('DOMContentLoaded', function() {
     audio.addEventListener('ended', nextSong);
     progressBar.addEventListener('click', setProgress);
     volumeSlider.addEventListener('input', setVolume);
+
+    window.addEventListener('resize', () => {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    });
 
     loadSong(currentSongIndex);
 
